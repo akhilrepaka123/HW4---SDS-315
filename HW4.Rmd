@@ -1,7 +1,7 @@
 ---
 title: "HW4"
 author: "Akhil Repaka | ar78978"
-date: "`r Sys.Date()`"
+date: "`r Sys.Date()` | https://github.com/akhilrepaka123/HW4---SDS-315/blob/main/HW4.Rmd"
 output:
   pdf_document: default
   html_document: default
@@ -100,7 +100,7 @@ significantly different from the county’s population proportions.
 **Conclusion:** Since the p-value is lower than 0.05 and the observed chi-square value is higher than the critical chi-square value (~9.49) the distribution is significant and we can reject the null hypothesis.
 
 \newpage
-# Problem 4
+# Problem 4a
 ```{r}
 # problem 4a
 
@@ -131,37 +131,38 @@ calculate_chi_squared = function(text, freq_table)
 }
 
 chi_squared_values = sapply(clean_sentences, calculate_chi_squared, freq_table = letter_freq)
-print(chi_squared_values)
 
 hist(chi_squared_values, main = "Reference Distribution of Chi-Squared Statistics",
      xlab = "Chi-Squared Value")
 
 ```
 
+
+
+# Problem 4b
 ```{r}
-# problem 4b
+#problem 4b
 
 newsentences <- c(
-  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
-  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
-  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+ "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+ "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+ "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
   "He carefully examined the document, looking for any clues that might help solve the mystery.",
-  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
-  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
-  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
-  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
-  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
-  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+ "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+ "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+"The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+ "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+ "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product #that exceeded everyone’s expectations."
 )
-```
-
-```{r}
 newsentences <- data.frame(text = newsentences)
 
-#for(i in 1:length(newsentences$text)) {
-  #newsentences$chi_squared_val[i] = calculate_chi_squared(newsentences$text[i], letter_freq)
-  #newsentences$p_val[i] = mean(newsentences$chi_squared_val >= newsentences$chi_squared_val[i])
-#}
-
+for(i in 1:length(newsentences$text)) {
+  newsentences$chi_squared_val[i] = calculate_chi_squared(newsentences$text[i], letter_freq)
+  newsentences$p_val[i] <- 1 - round(pchisq(newsentences$chi_squared_val[i], df = 25), 3) # 25 degrees of freedom
+}
+kable(newsentences, booktabs = TRUE, longtable = TRUE,
+      col.names = c("Sentence", "Chi-Squared Value", "P-Value"),
+      caption = "Chi-Squared Values and P-Values for Sentences")
 ```
 
