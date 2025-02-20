@@ -1,0 +1,167 @@
+---
+title: "HW4"
+author: "Akhil Repaka | ar78978"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+library(tidyverse)
+library(mosaic)
+library(ggplot2)
+library(knitr)
+text <- readLines("brown_sentences.txt", warn = FALSE)
+letter_freq <- read.csv("letter_frequencies.csv", stringsAsFactors = FALSE)
+```
+
+
+# Problem 1
+
+```{r}
+# problem 1
+set.seed(123)
+
+sim_fraud = do(100000) * nflip(n=2021, prob=0.024) # monte-carlo simulations of the null hypothesis 
+
+ggplot(sim_fraud) + 
+  geom_histogram(aes(x=nflip), binwidth=1) + geom_vline(xintercept = 70, color = 'red', linetype = 'dashed') #distribution for the monte -  carlo simulations and plotting where the test statistic is
+
+total_fraud = sum(sim_fraud >= 70) # how many test cases are equal to or above the test statistic
+
+p_value_fraud = total_fraud/100000 
+```
+
+
+**Null Hypothesis:** Iron Bank's 70 flagged securities trades are consistent with the SEC’s 2.4% baseline rate and therefore other traders in the long run.
+
+**Test Statistic:** This is the number of observed flagged cases, which is 70. The P-Value is determined using the simulations that result in a number higher than the test statistic. 
+
+**P-Value:** The P_value is **`r p_value_fraud`**
+
+**Conclusion:** Since the p-value is lower than 0.05, this allows us to reject the null hypothesis and assume there was suspicious trading activity going on. 
+
+\newpage
+
+# Problem 2
+```{r}
+# problem 2
+set.seed(123)
+
+sim_restaurant = do(100000) * nflip(n=50, prob=0.03)
+ggplot(sim_restaurant) + 
+  geom_histogram(aes(x=nflip), binwidth=1) + geom_vline(xintercept = 8, color = 'red', linetype = 'dashed')
+
+total_restaurant = sum(sim_restaurant >= 8)
+
+p_value_restaurant = total_restaurant/100000
+```
+
+**Null Hypothesis:** Gourmet Bites is consistent with the Health Department’s 3% baseline rate for average restaurants cited health code violations. 
+
+**Test Statistic:** This is the number of observed flagged cases, which is 8. The P-Value is determined using the simulations that result in a number higher than the test statistic. 
+
+**P-Value:** The P_value is **`r p_value_restaurant`**
+
+**Conclusion:** Since the p-value is lower than 0.05, this allows us to reject the null hypothesis and assume there was a significant reason behind the 8 helath code violations and is not arbritary. 
+
+\newpage
+# Problem 3
+```{r}
+# problem 3
+set.seed(123)
+
+expected_props <- c(0.30, 0.25, 0.20, 0.15, 0.10)  # Population distribution
+observed_count <- c(85, 56, 59, 27, 13)  # Empaneled jurors
+total_jurors <- sum(observed_count)
+
+expected_count <- total_jurors * expected_props
+
+chisq <- sum((observed_count - expected_count)^2 / expected_count) # manually calculating for chi square value
+
+chi_sq_test <- chisq.test(observed_count, p = expected_props) # chi squared function and shows p - value
+
+chi_sq_test
+```
+
+Manually calculated observed chi squared value is **`r chisq`**
+
+I used the **chi squared test** to determine whether the distribution of jurors empaneled by this judge is
+significantly different from the county’s population proportions. 
+
+**Null Hypothesis:** The judge’s empaneled jurors are selected randomly according to the county's demographic proportions.
+
+**Test Statistic:** The test statistic is calculated using the chi-square function and is **12.426**
+
+**P-Value:** The p-value is 0.01445 or in other words, there is only a 1.44% chance that this observed distribution happens.
+
+**Conclusion:** Since the p-value is lower than 0.05 and the observed chi-square value is higher than the critical chi-square value (~9.49) the distribution is significant and we can reject the null hypothesis.
+
+\newpage
+# Problem 4
+```{r}
+# problem 4a
+
+clean_sentences = gsub("[^A-Za-z]", "", text)  # Remove non-letters
+clean_sentences = toupper(clean_sentences)
+
+calculate_chi_squared = function(text, freq_table) 
+  {
+  
+  # Ensure letter frequencies are normalized and sum to 1
+  freq_table$Probability = freq_table$Probability / sum(freq_table$Probability)
+  
+  # Remove non-letters and convert to uppercase
+  clean_sentence = gsub("[^A-Za-z]", "", text)
+  clean_sentence = toupper(clean_sentence)
+  
+  # Count the occurrences of each letter in the sentence
+  observed_counts = table(factor(strsplit(clean_sentence, "")[[1]], levels = freq_table$Letter))
+  
+  # Calculate expected counts
+  total_letters = sum(observed_counts)
+  expected_counts = total_letters * freq_table$Probability
+  
+  # Chi-squared statistic
+  chi_squared_stat = sum((observed_counts - expected_counts)^2 / expected_counts)
+  
+  return(chi_squared_stat)
+}
+
+chi_squared_values = sapply(clean_sentences, calculate_chi_squared, freq_table = letter_freq)
+print(chi_squared_values)
+
+hist(chi_squared_values, main = "Reference Distribution of Chi-Squared Statistics",
+     xlab = "Chi-Squared Value")
+
+```
+
+```{r}
+# problem 4b
+
+newsentences <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+)
+```
+
+```{r}
+newsentences <- data.frame(text = newsentences)
+
+#for(i in 1:length(newsentences$text)) {
+  #newsentences$chi_squared_val[i] = calculate_chi_squared(newsentences$text[i], letter_freq)
+  #newsentences$p_val[i] = mean(newsentences$chi_squared_val >= newsentences$chi_squared_val[i])
+#}
+
+```
+
